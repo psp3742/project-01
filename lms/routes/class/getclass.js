@@ -1,5 +1,3 @@
-'use strict'
-
 //const { requireServerPluginFromPath } = require("fastify-cli/util")
 
 /*module.exports = async function (fastify, opts) {
@@ -29,6 +27,9 @@
 })
 
 }*/
+
+/*'use strict'
+
 module.exports = async function (fastify, opts) {
   fastify.get('/', async(request,reply) => {
     try{
@@ -72,6 +73,64 @@ module.exports = async function (fastify, opts) {
       reply.code(200).send(result.rows);
     } finally {
       client.release();
+    }
+  });
+} */
+
+
+'use strict'
+
+module.exports = async function (fastify, opts) {
+  fastify.get('/', async(request,reply) => {
+    let client;
+    try {
+      client = await fastify.pg.connect();
+      const result = await client.query(`SELECT * FROM public.classes`);
+      reply.code(200).send(result.rows);
+    } catch (error) {
+      throw error;
+    } finally {
+      if (client) client.release();
+    }
+  });
+
+
+  fastify.get('/professorName/:professorName', async(request,reply) => {
+    let client;
+    try {
+      client = await fastify.pg.connect();
+      const result = await client.query(`SELECT * FROM public.classes WHERE professorName = $1`, [request.params.professorName]);
+      reply.code(200).send(result.rows);
+    } catch (error) {
+      throw error;
+    } finally {
+      if (client) client.release();
+    }
+  });
+
+  fastify.get('/classId/:classId', async(request,reply) => {
+    let client;
+    try {
+      client = await fastify.pg.connect();
+      const result = await client.query(`SELECT * FROM public.classes WHERE classId = $1`, [request.params.classId]);
+      reply.code(200).send(result.rows);
+    } catch (error) {
+      throw error;
+    } finally {
+      if (client) client.release();
+    }
+  });
+
+  fastify.get('/title/:title', async(request,reply) => {
+    let client;
+    try {
+      client = await fastify.pg.connect();
+      const result = await client.query(`SELECT * FROM public.classes WHERE title = $1`, [request.params.title]);
+      reply.code(200).send(result.rows);
+    } catch (error) {
+      throw error;
+    } finally {
+      if (client) client.release();
     }
   });
 }
