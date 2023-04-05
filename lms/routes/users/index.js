@@ -1,12 +1,15 @@
 'use strict'
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', async function (request, reply) {
+  fastify.register(require('./createus'))
+  fastify.register(require('./update'))
+
+fastify.get('/users', async function (request, reply) {
 
     const client = await fastify.pg.connect()
   try {
     const { rows } = await client.query(
-        'INSET INTO public.classes (classId, title, professorName, subjectOutline, role) VALUES (2, Cloud, 이코드, we are gonna learn about Cloud, 1)'
+      'SELECT * FROM public.users'
     )
     reply.code(200).send(rows)
   } finally {
@@ -14,3 +17,6 @@ module.exports = async function (fastify, opts) {
   }
   })
 }
+
+
+  
