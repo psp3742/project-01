@@ -1,13 +1,13 @@
 'use strict'
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', { contentType: 'application/json' }, async function (request, reply) {
+  fastify.post('/:userId/:role/:userName/:email', async function (request, reply) {
 
     const client = await fastify.pg.connect()
     try {
-      const { userId, role, userName, email } = request.body;
       const { rows } = await client.query(
-        `INSERT INTO public.users (userId, role, userName, email) VALUES ($1, $2, $3, $4) RETURNING * `, [userId, role, userName, email]); 
+        `INSERT INTO public.users (userid, role, userName, email) VALUES ($1, $2, $3, $4)`, 
+        [request.params.userId, request.params.role, request.params.userName, request.params.email]); 
         reply.code(200).send(rows)
       
     } finally { 

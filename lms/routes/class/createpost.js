@@ -1,137 +1,45 @@
-/*'use strict'
-
-module.exports = async function (fastify, opts) {
-  fastify.post('/', async function (request, reply) {
-    const client = await fastify.pg.connect()
-
-    try {
-      const { title, classId, professorName, subjectOutline } = request.body;
-      const { authorization } = request.headers;
-      const tokenkey = {
-        kimcoding: 1,
-        ecode: 2
-      };
-      const userId = tokenkey[authorization];
-
-      if (!userId) {
-        throw { statusCode: 403, message: '토큰x' };
-      }
-      if (!title) {
-        throw { status: 401, message: '강의명 오류' };
-      }
-
-      // Map user IDs to professor IDs
-      const professorIdMap = {
-        1: 'prof1',
-        2: 'prof2'
-      };
-      const professorId = professorIdMap[userId];
-
-      if (!professorId) {
-        throw { statusCode: 403, message: '권한 없음' };
-      }
-
-      const { rows } = await client.query(
-        `INSERT INTO public.classes (classId, title, professorName, subjectOutline, role) VALUES ($1, $2, $3, $4, $5)`,
-        [classId, title, professorName, subjectOutline, professorId]
-      );
-
-      reply.code(200).send(rows);
-    } finally {
-      client.release();
-    }
-  })
-}*/
-
-
 'use strict'
 
 module.exports = async function (fastify, opts) {
-  fastify.route({
-    method: 'POST',
-    url: '/',
-    handler: async function (request, reply) {
-      const client = await fastify.pg.connect()
+  fastify.post('/:classId/:title/:professorname/:subjectoutLine/:role', async function (request, reply) {
 
-      try {
-        const { title, classId, professorName, subjectOutline } = request.body;
-        const { authorization } = request.headers;
-        const tokenkey = {
-          1: 1,
-          2: 2
-        };
-        const role = tokenkey[authorization];
+    const client = await fastify.pg.connect();
+    
+    const awk = request.headers.authorization;
+    //console.log(awk);
 
-        if (!role) {
-          throw { statusCode: 403, message: '토큰x' };
-        }
-        if (!title) {
-          throw { status: 401, message: '강의명 오류' };
-        }
+    const substring = awk.split(' ');
+    //console.log(substring);
 
-        // Map user IDs to professor IDs
-        const professorIdMap = {
-          1: 'prof1',
-          2: 'prof2'
-        };
-        const professorId = professorIdMap[role];
+    const token = substring[1];
+    console.log(token);
+    let result;
 
-        if (!professorId) {
-          throw { statusCode: 403, message: '권한 없음' };
-        }
-
-        const { rows } = await client.query(
-          `INSERT INTO public.classes (classId, title, professorName, subjectOutline, role) VALUES ($1, $2, $3, $4, $5)`,
-          [classId, title, professorName, subjectOutline, professorId]
-        );
-
-        reply.code(200).send(rows);
-      } finally {
-        client.release();
-      }
+    if(token === '1'){
+      throw { statusCode: 403, message: '강의자가 아닙니다.' };      
+    } else if(token === '2') {
+      result = 2;
+    } else {
+      throw { statusCode: 403, message: '토큰x' };
     }
-  })
 
-  fastify.route({
-    method: 'DELETE',
-    url: '/:classId',
-    handler: async function (request, reply) {
-      const client = await fastify.pg.connect()
+  client.query(`
+    SELECT *
+    FROM users u
+    INNER JOIN classes c ON u.userid = c.professorid`, 
+    )
+  
 
-      try {
-        const { classId } = request.body;
-        const { authorization } = request.headers;
-        const tokenkey = {
-          1: 1,
-          2: 2
-        };
-        const role = tokenkey[authorization];
-
-        if (!role) {
-          throw { statusCode: 403, message: '토큰x' };
-        }
-
-        // Map user IDs to professor IDs
-        const professorIdMap = {
-          1: 'prof1',
-          2: 'prof2'
-        };
-        const professorId = professorIdMap[role];
-
-        if (!professorId) {
-          throw { statusCode: 403, message: '권한 없음' };
-        }
-
-        const { rows } = await client.query(
-          `DELETE FROM public.classes WHERE classId=$1 AND role=$2`,
-          [classId, professorId]
-        );
-
-        reply.code(200).send(rows);
-      } finally {
-        client.release();
-      }
+  if(samerows < 0){
+    throw { statusCode: 403, message: '수강자와 강의자가 다릅니다' };
     }
+    
+  const { rows } = await client.query(`
+    INSERT INTO public.classes(classid, title, professorName, subjectoutline, role, userid, professorid) VALUES ($1, $2, $3, $4, $5, $6, $7`,
+    [request.params.classId, request.params.title, request.params.professorname, request.params.subjectoutLine, request.params.role, request.params.userId, request.params.professorId]);
+    reply.code(200).send('추가되었습니다');
+
+    client.release();
+  
   })
 }
-

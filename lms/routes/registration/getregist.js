@@ -1,30 +1,33 @@
 'use strict'
+
 module.exports = async function (fastify, opts) {
-  fastify.get('/', async function (request, reply) {
+  fastify.get('/userId/:userId', async function (request, reply) {
 
-    const client = await fastify.pg.connect()
-  try {
-    const {title} = request.body;
-    const {authorization} = request.headers;
-    const tokenkey = {
-        3: 3
+    const client = await fastify.pg.connect();
+    
+    const awk = request.headers.authorization;
+    //console.log(awk);
+
+    const substring = awk.split(' ');
+    //console.log(substring);
+
+    const token = substring[1];
+    //console.log(token);
+    let result;
+
+    if(token === '1'){
+      result = 1;     
+    } else if(token === '2') {
+      throw { statusCode: 403, message: '수강자가 아닙니다.' };
+    } else {
+      throw { statusCode: 403, message: '토큰x' };
     }
-    const role = tokenkey[authorization];
+   
+    const { rows } = await client.query(`SELECT * FROM registration WHERE(userid = $1)`, [request.params.userId]);
+    reply.code(200).send(rows);
 
-    if(!role){
-        throw {statusCode: 403, message: '토큰x'};
-    }
-    if(title == undefined){
-        throw {satatus: 401, message: '강의명 오류'};
-    }   
+    client.release();
 
-    const { rows } = await fastify.pg.query(`SELECT * FROM registration `);
-    reply.code(200).send(rows)
-
-  } finally {
-  client.release()
+    
+  })
 }
-})
-
-}
- 

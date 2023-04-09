@@ -4,7 +4,7 @@ module.exports = async function (fastify, opts) {
   fastify.register(require('./createus'))
   fastify.register(require('./update'))
 
-fastify.get('/users', async function (request, reply) {
+fastify.get('/', async function (request, reply) {
 
     const client = await fastify.pg.connect()
   try {
@@ -17,6 +17,3 @@ fastify.get('/users', async function (request, reply) {
   }
   })
 }
-
-
-  
