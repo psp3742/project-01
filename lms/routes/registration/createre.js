@@ -1,34 +1,32 @@
 'use strict'
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', async function (request, reply) {
-  let client = undefined;
-  try {
-    const {title} =request.body;
-    const {authorization} = request.headers;
-    const tokenkey = {
-    3: 3
-    };
-    const role = tokenkey[authorization];
+  fastify.post('/:registId/:userId/:classId', async function (request, reply) {
 
-    if(!role){
-      throw {statusCode: 403, message: '토큰x'};
+    const client = await fastify.pg.connect();
+    
+    const awk = request.headers.authorization;
+    //console.log(awk);
+
+    const substring = awk.split(' ');
+    //console.log(substring);
+
+    const token = substring[1];
+    console.log(token);
+    let result;
+
+    if(token === '1'){
+      result = 1;     
+    } else if(token === '2') {
+      throw { statusCode: 403, message: '수강자가 아닙니다.' };
+    } else {
+      throw { statusCode: 403, message: '토큰x' };
     }
-    if(title == undefined){
-      throw {satatus: 401, message: '강의명 오류'};
-    }
-    client = await fastify.pg.connect()
+   
+    const { rows } = await client.query(`INSERT INTO public.registration(registid, userid, classid) VALUES($1, $2, $3)`, [request.params.registId, request.params.userId, request.params.classId]);
+    reply.code(200).send(rows);
 
-    const { rows } = await fastify.pg.query(`INSERT INTO registration VALUES (classid = ${classId})`);
-    reply.code(200).send(rows)
-    return;
-  } catch (e) {
-    reply.code(500).send({message: e.massage});
-  } finally {
-    if (client) 
-      client.release()
-  }
-})
+    client.release();
 
-
+  })  
 }
